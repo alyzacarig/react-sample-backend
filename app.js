@@ -3,15 +3,27 @@ const cors = require('cors');
 
 const app = express();
 
-// Allow CORS for your frontend URL
+app.use(express.json()); // Parse JSON requests
+
+// ✅ Use both cors() and manual CORS headers
 const corsOptions = {
-  origin: ["https://react-poster-kappa.vercel.app"], // Change this to your Vercel frontend URL
-  methods: "GET,POST,PUT,DELETE",
+  origin: ["https://react-poster-kappa.vercel.app"], // Allow your frontend
+  methods: "GET, POST, PUT, DELETE",
   allowedHeaders: "Content-Type",
 };
 
-app.use(cors(corsOptions));
-app.use(express.json());
+app.use(cors(corsOptions)); // Apply CORS
+
+// ✅ Manually set CORS headers for better compatibility
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "https://react-poster-kappa.vercel.app");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204); // Respond to preflight requests
+  }
+  next();
+});
 
 // Temporary in-memory storage
 let posts = [];
@@ -39,7 +51,7 @@ app.put('/posts/:id', (req, res) => {
   if (postIndex === -1) {
     return res.status(404).json({ error: 'Post not found' });
   }
-  posts[postIndex].body = req.body.body; // Update post body
+  posts[postIndex].body = req.body.body;
   res.json(posts[postIndex]);
 });
 
